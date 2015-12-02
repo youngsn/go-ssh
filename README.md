@@ -19,14 +19,17 @@ $ go build -o ssh-logins $GOPATH/github.com/youngsn/go-ssh/src/main.go
 $ ./ssh-logins -c $CONF -d "$CMD"
 ```
 
-## Config sytax
+## Config syntax
+
+Config file using toml syntax.
+
 ```toml
 Username = ""       # server username
 Password = ""       # login password, if don't config, you will enter through stdin
 PublicKey = ""      # ssh public authorized key path, if using this, add here
 
 Hosts = [
-    "127.0.0.1"         # default port 22
+    "127.0.0.1",        # default port 22
     "127.0.0.2:25"      # port 25
 ]
 ```
