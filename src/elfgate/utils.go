@@ -7,10 +7,36 @@ package elfgate
 import (
     "os"
     "fmt"
+    "regexp"
     "syscall"
 
     "golang.org/x/crypto/ssh/terminal"
 )
+
+
+func StdOutput(outputs []*CmdOutput) {
+    if len(outputs) == 0 {
+        fmt.Println("no any outputs")
+        return
+    }
+
+    for _, res := range outputs {
+        if res.Error != nil {
+            fmt.Printf("%s | failed | %s >>\n", res.Host, res.Error.Error())
+        } else {
+            fmt.Printf("%s | success >>\n", res.Host)
+        }
+
+        if len(res.Output) == 0 {
+            fmt.Println()
+            continue
+        }
+
+        for _, op := range res.Output {
+            fmt.Println(op)
+        }
+    }
+}
 
 
 // Get char from terminal
@@ -29,6 +55,14 @@ func Getch() byte {
     return buf[0]
 }
 
+
+func IsSudo(cmd string) bool {
+    if m, _ := regexp.MatchString("^sudo .+$", cmd); m {
+        return true
+    }
+
+    return false
+}
 
 // If filepath exists, will auto create one if not exist.
 func FilePathExist(path string) error {

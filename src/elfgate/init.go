@@ -17,6 +17,7 @@ var (
     Username             string
     Password             string
     Cmd                  string
+    Timeout              int
     Hosts                []string
 
     SSHAgents            *AgentPool
@@ -32,7 +33,8 @@ func Initialize() error {
     var err error
 
     var cfgFile     = flag.String("c", "hosts.toml", "hosts config list")
-    var cmd         = flag.String("d", "", "exec command")
+    var cmd         = flag.String("d", "", "execute command")
+    var timeout     = flag.Int("t", 0, "execute timeout")       // 0 means no timeout
     flag.Parse()
 
     if _, err = toml.DecodeFile(*cfgFile, &config); err != nil {
@@ -40,14 +42,15 @@ func Initialize() error {
     }
 
     if *cmd == "" {
-        return fmt.Errorf("Usage: needs -d cmd")
+        return fmt.Errorf("Usage: -d 'exec cmd'; -c hosts; -t timeout")
     }
 
     Cmd             = *cmd
+    Timeout         = *timeout
+
     Username        = config.Username
     Password        = config.Password
     PublicKeyPath   = config.PublicKey
-
     Hosts           = []string{}
     for _, v := range config.Hosts {             // add default port
         if !strings.Contains(v, ":") {

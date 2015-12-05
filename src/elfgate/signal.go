@@ -28,11 +28,11 @@ func NewSignal() *Signal {
 }
 
 
-func (this *Signal) Start() {
+func (this *Signal) Run() {
     for {
         signal    := <-this.signalChan
-        if signal == syscall.SIGINT || signal == syscall.SIGTERM {
-            os.Exit(0)
+        if signal == syscall.SIGINT || signal == syscall.SIGTERM {      // stop the running
+            SSHAgents.StopCmds()
             return
         }
 

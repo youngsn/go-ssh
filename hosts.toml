@@ -1,4 +1,6 @@
-Username = "tangyang"
-Hosts    = [
+Username  = "tangyang"
+Password  = ""
+PublicKey = "/home/tangyang/.ssh/id_rsa"
+Hosts     = [
     "127.0.0.1",
 ]

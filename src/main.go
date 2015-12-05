@@ -20,15 +20,20 @@ func main() {
 
     runtime.GOMAXPROCS(1)
 
-    signal              := NewSignal()
-    go signal.Start()           // listening Ctrl+c cmd
+    signal         := NewSignal()
+    go signal.Run()           // listening Ctrl+c cmd
 
-    if Password == "" {
-        fmt.Printf("%s's password: ", Username)
-        Password         = GetPasswd(false)
+    if PublicKeyPath == "" && Password == "" {
+        fmt.Printf("password for %s: ", Username)
+        Password        = GetPasswd(false)
+    } else if PublicKeyPath != "" && Password == "" {       // If sudo cmd, needs password
+        if IsSudo(Cmd) {
+            fmt.Printf("password for %s: ", Username)
+            Password    = GetPasswd(false)
+        }
     }
 
-    SSHAgents            = NewAgentPool(Username, Password, Hosts, OutputChan)
+    SSHAgents       = NewAgentPool(Username, Password, Hosts, OutputChan)
     if len(SSHAgents.Failed) != 0 {
         for _, msg := range SSHAgents.Failed {
             fmt.Println(msg)
@@ -41,39 +46,13 @@ func main() {
         ErrExit(fmt.Errorf("Can not connect to all clients"))
     }
 
-    oLen                := SSHAgents.Exec(Cmd)
-    outputs             := SSHOput.GetOutput(oLen)
-    stdout(outputs)
+    fmt.Println("Start......")
+    oLen           := SSHAgents.Exec(Cmd, Timeout)
+    outputs        := SSHOput.GetOutput(oLen)
+    StdOutput(outputs)
+    SSHAgents.Close()
 
     os.Exit(0)
-}
-
-
-func stdout(outputs []*CmdOutput) {
-    if len(outputs) == 0 {
-        fmt.Println("no any outputs")
-        return
-    }
-
-    for _, res := range outputs {
-        fmt.Printf("%s:\n", res.Host)
-
-        if res.Error != nil {
-            fmt.Println("Error:", res.Error.Error())
-        }
-
-        if len(res.Output) == 0 {
-            fmt.Println("no outputs")
-            continue
-        }
-
-        for _, op := range res.Output {
-            fmt.Println(op)
-        }
-
-        fmt.Println("")
-    }
-
 }
 
 
