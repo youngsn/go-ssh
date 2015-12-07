@@ -1,6 +1,14 @@
 Username  = "tangyang"
 Password  = ""
 PublicKey = "/home/tangyang/.ssh/id_rsa"
+
+[hosts.default]
 Hosts     = [
     "127.0.0.1",
+    "127.0.0.2:23",
+]
+
+[hosts.test]
+Hosts     = [
+    "127.0.0.2",
 ]

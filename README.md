@@ -4,7 +4,8 @@ Batch exec command on servers &amp; written by golang.
 
 ## Features
 
-- You can exec command on batch servers.
+- Exec command on cluster servers.
+- Server clusters support.
 
 ## Getting started
 
@@ -16,11 +17,17 @@ $ go build -o ssh-logins $GOPATH/github.com/youngsn/go-ssh/src/main.go
 ```
 
 Usage:
+
 Execute command just like below, the outputs will print on screen or > to file.
+
 Now also sudo command are supported, but at first you should enter password if not config pasword.
 
+- -c default: host.toml
+- -t default: 0, no timeout
+- -s default: default
+
 ```shell
-$ ssh-logins -c $CONF -d "$CMD" -t $TIMEOUT
+$ ssh-logins -c $CONF -d "$CMD" -t $TIMEOUT -s example
 ```
 
 ## Config sytax
@@ -29,9 +36,18 @@ Username  = ""       # server username
 Password  = ""       # login password, if don't config, you will enter through stdin
 PublicKey = ""       # ssh public authorized key path, if using this, add here
 
+# Cluster default
+[hosts.default]
 Hosts     = [
     "127.0.0.1",        # default port 22
     "127.0.0.2:25"      # port 25
+]
+
+# Cluster 2
+[hosts.example]
+Hosts     = [
+    "127.0.0.2",
+    "127.0.0.3:25"
 ]
 ```
 
