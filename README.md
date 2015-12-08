@@ -6,14 +6,18 @@ Batch exec command on servers &amp; written by golang.
 
 - Exec command on cluster servers.
 - Server clusters support.
+- Hosts support simple preg.
 
 ## Getting started
 
-Get the package and build it.
+Get the package, add the src to workspace path and build it.
+
+But, first you should get golang ssh packages
 
 ```shell
-$ go get github.com/youngsn/go-ssh
-$ go build -o ssh-logins $GOPATH/github.com/youngsn/go-ssh/src/main.go
+$ git clone github.com/youngsn/go-ssh
+$ go build -o ssh-logins $GOPATH/go-ssh/src/main.go
+$ cp go-ssh/hosts.toml /etc/elfgate.conf
 ```
 
 Usage:
@@ -22,15 +26,16 @@ Execute command just like below, the outputs will print on screen or > to file.
 
 Now also sudo command are supported, but at first you should enter password if not config pasword.
 
-- -c default: host.toml
+- -c default: /etc/elfgate.conf
 - -t default: 0, no timeout
 - -s default: default
+- -d execute commands, no default
 
 ```shell
 $ ssh-logins -c $CONF -d "$CMD" -t $TIMEOUT -s example
 ```
 
-## Config sytax
+## Config syntax
 ```toml
 Username  = ""       # server username
 Password  = ""       # login password, if don't config, you will enter through stdin
@@ -39,8 +44,10 @@ PublicKey = ""       # ssh public authorized key path, if using this, add here
 # Cluster default
 [hosts.default]
 Hosts     = [
-    "127.0.0.1",        # default port 22
-    "127.0.0.2:25"      # port 25
+    "127.0.0.[1-5]",        # simple preg support
+    "127.0.0.[6-7]:233",
+    "127.0.0.8",            # default port 22
+    "127.0.0.9:25"          # port 25
 ]
 
 # Cluster 2

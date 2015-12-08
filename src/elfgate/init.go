@@ -5,7 +5,6 @@ package elfgate
 import (
     "fmt"
     "flag"
-    "strings"
 
     "github.com/BurntSushi/toml"
 )
@@ -32,7 +31,7 @@ func Initialize() error {
     var config *ConfigStruct
     var err error
 
-    var cfgFile     = flag.String("c", "hosts.toml", "hosts config list")
+    var cfgFile     = flag.String("c", "/etc/elfgate.conf", "hosts config")
     var cmd         = flag.String("d", "", "execute command")
     var cluster     = flag.String("s", "default", "host cluster")
     var timeout     = flag.Int("t", 0, "execute timeout")       // 0 means no timeout
@@ -43,7 +42,7 @@ func Initialize() error {
     }
 
     if *cmd == "" {
-        return fmt.Errorf("Usage: -d 'exec cmd'; -c hosts; -t timeout; -s cluster")
+        return fmt.Errorf("Usage: -d 'exec cmd'; -c conf; -t timeout; -s cluster")
     }
 
     Cmd             = *cmd
@@ -54,16 +53,23 @@ func Initialize() error {
     PublicKeyPath   = config.PublicKey
 
     // support multi clusters
+    if _, ok := config.Hosts[*cluster]; !ok {
+        return fmt.Errorf("cluster: %s, not exist", *cluster)
+    }
+
     for name, s := range config.Hosts {
         if name == *cluster {
-            for _, h := range s.Hosts {
-                if !strings.Contains(h, ":") {
-                    h    = h + ":22"
-                }
-                Hosts    = append(Hosts, h)
+            Hosts, err      = ParseHosts(s.Hosts)
+            if err != nil {
+                return err
             }
+
             break
         }
+    }
+
+    if len(Hosts) == 0 {
+        return fmt.Errorf("Cluster: %s, no valid hosts", *cluster)
     }
 
     OutputChan      = make(chan *CmdOutput, 10240)
