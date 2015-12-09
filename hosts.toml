@@ -1,6 +1,6 @@
 Username  = "tangyang"
 Password  = ""
-PublicKey = "/home/tangyang/.ssh/id_rsa"
+#PublicKey = "/home/tangyang/.ssh/id_rsa"
 
 [hosts.default]
 Hosts     = [

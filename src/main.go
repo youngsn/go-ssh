@@ -14,7 +14,8 @@ import (
 
 
 func main() {
-    if err := Initialize(); err != nil {
+    var err error
+    if err = Initialize(); err != nil {
         ErrExit(err)
     }
 
@@ -24,12 +25,10 @@ func main() {
     go signal.Run()           // listen ^C & kill
 
     if PublicKeyPath == "" && Password == "" {
-        fmt.Printf("password for %s: ", Username)
-        Password      = GetPasswd(false)
+        Password      = getPasswd()
     } else if PublicKeyPath != "" && Password == "" {       // If sudo cmd, needs password
         if IsSudo(Cmd) {
-            fmt.Printf("password for %s: ", Username)
-            Password  = GetPasswd(false)
+            Password  = getPasswd()
         }
     }
 
@@ -54,5 +53,17 @@ func main() {
     os.Exit(0)
 }
 
+
+func getPasswd() string {
+    fmt.Printf("password for %s: ", Username)
+    passwd, err := GetPasswd(false)
+    if err != nil {
+        fmt.Println()
+        fmt.Println(err.Error())
+        os.Exit(0)
+    }
+
+    return passwd
+}
 
 /* vim: set expandtab ts=4 sw=4 sts=4 tw=100: */

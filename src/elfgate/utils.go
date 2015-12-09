@@ -114,6 +114,7 @@ func IsSudo(cmd string) bool {
     return false
 }
 
+
 // If filepath exists, will auto create one if not exist.
 func FilePathExist(path string) error {
     if _, err  := os.Stat(path); os.IsNotExist(err) {

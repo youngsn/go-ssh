@@ -3,6 +3,7 @@ package elfgate
 
 import(
     "os"
+    "fmt"
     "time"
     "bufio"
     "strings"
@@ -12,7 +13,7 @@ import(
 // getPasswd returns the input read from terminal.
 // If masked is true, typing will be matched by asterisks on the screen.
 // Otherwise, typing will echo nothing.
-func GetPasswd(masked bool) string {
+func GetPasswd(masked bool) (string, error) {
     var pass, bs, mask []byte
     if masked {
         bs   = []byte("\b \b")
@@ -27,6 +28,8 @@ func GetPasswd(masked bool) string {
             }
         } else if v == 13 || v == 10 {
             break
+        } else if v == 3 {          // ^C, return exit flag
+            return "", fmt.Errorf("exit")
         } else if v != 0 {
             pass     = append(pass, v)
             os.Stdout.Write(mask)
@@ -34,7 +37,7 @@ func GetPasswd(masked bool) string {
     }
 
     println()
-    return string(pass)
+    return string(pass), nil
 }
 
 

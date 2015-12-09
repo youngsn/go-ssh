@@ -7,6 +7,7 @@ package elfgate
 
 import (
     "os"
+    "fmt"
     "time"
     "os/signal"
     "syscall"
@@ -32,8 +33,13 @@ func (this *Signal) Run() {
     for {
         signal    := <-this.signalChan
         if signal == syscall.SIGINT || signal == syscall.SIGTERM {      // stop the running
-            SSHAgents.StopCmds()
-            return
+            if SSHAgents == nil {       // Not connected to all clients
+                fmt.Println()
+                os.Exit(0)
+            } else {                    // cmds running stopped
+                SSHAgents.StopCmds()
+                return
+            }
         }
 
         time.Sleep(100 * time.Microsecond)
