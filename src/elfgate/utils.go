@@ -6,9 +6,11 @@ package elfgate
 
 import (
     "os"
+    "io/ioutil"
     "fmt"
     "regexp"
     "strconv"
+    "strings"
     "syscall"
 
     "golang.org/x/crypto/ssh/terminal"
@@ -71,12 +73,12 @@ func StdOutput(outputs []*CmdOutput) {
 
     for _, res := range outputs {
         if res.Error != nil {
-            fmt.Printf("%s | failed | %s >>\n", res.Host, res.Error.Error())
+            fmt.Printf("%s | failed >>\n", res.Host)
         } else {
             fmt.Printf("%s | success >>\n", res.Host)
         }
 
-        if len(res.Output) == 0 {
+        if res.Output == nil || len(res.Output) == 0 {
             fmt.Println()
             continue
         }
@@ -106,12 +108,68 @@ func Getch() byte {
 
 
 // Judge the command sudo or not.
-func IsSudo(cmd string) bool {
+func CmdType(cmd string) string {
     if m, _ := regexp.MatchString("^sudo .+$", cmd); m {
-        return true
+        return "sudo"
+    } else if m, _ := regexp.MatchString("^sftp .+$", cmd); m {
+        return "sftp"
+    } else {
+        return "normal"
+    }
+}
+
+
+// Judge the command sudo or not.
+func SftpCmdProc(user string, cmd string) ([]*SftpFile, string, error) {
+    reg, _       := regexp.Compile(`^sftp\s+(.+)\s+(.+)$`)
+    ps           := reg.FindStringSubmatch(cmd)
+
+    src          := strings.Trim(ps[1], " ")
+    dest         := strings.Trim(ps[2], " ")
+
+    // replace ~ to /home/user
+    if strings.Contains(src, "~") {
+        src       = strings.Replace(src, "~", fmt.Sprintf("/home/%s", user), -1)
+    }
+    if strings.Contains(dest, "~") {
+        dest      = strings.Replace(dest, "~", fmt.Sprintf("/home/%s", user), -1)
     }
 
-    return false
+    if src == "" || dest == "" {
+        return nil, dest, fmt.Errorf("%s, error command", cmd)
+    } else if err := FileExist(src); err != nil {
+        return nil, dest, err
+    }
+
+    filename      := ""
+    ts            := strings.Split(src, "/")
+    filename, ts   = ts[len(ts) - 1], ts[:len(ts) - 1]
+
+    fd, err       := os.Open(src)
+    if err != nil {
+        return nil, dest, err
+    }
+    contents, err := ioutil.ReadAll(fd)
+    if err != nil {
+        return nil, dest, err
+    }
+
+    file            := &SftpFile{
+        Filename    : filename,
+        Destination : dest,
+        File        : contents,
+    }
+    return []*SftpFile{file}, dest, nil
+}
+
+
+// If file or path exist.
+func FileExist(path string) error {
+    if _, err  := os.Stat(path); os.IsNotExist(err) {
+        return err
+    }
+
+    return nil
 }
 
 

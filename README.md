@@ -6,7 +6,8 @@ Batch exec command on servers &amp; written by golang.
 
 - Exec command on cluster servers.
 - Server clusters support.
-- Hosts support simple preg.
+- Hosts support simple preg(just IPs).
+- sftp supported, can upload file to batch servers(NOTE: supported file only).
 
 ## Getting started
 
@@ -26,13 +27,19 @@ Execute command just like below, the outputs will print on screen or > to file.
 
 Now also sudo command are supported, but at first you should enter password if not config pasword.
 
-- -c default: /etc/elfgate.conf
-- -t default: 0, no timeout
-- -s default: default
-- -d execute commands, no default
+- -c, config file location, default: /etc/elfgate.conf
+- -t, command timeout, default: 0, no timeout
+- -g, groups that execute commands, default: default
+- -d, execute command, need specify.
 
 ```shell
-$ ssh-logins -c $CONF -d "$CMD" -t $TIMEOUT -s example
+$ ssh-logins -c $CONF -t $TIMEOUT -g $GROUP -d $CMD
+```
+
+If you want to upload file to batch server, just do like below. Very easy and now only supported file, not directory.
+
+```shell
+$ ssh-logins -c $CONF -g $GROUP -d "sftp $LOCAL_PATH $REMOTE_PATH"
 ```
 
 ## Config syntax
@@ -41,8 +48,8 @@ Username  = ""       # server username
 Password  = ""       # login password, if don't config, you will enter through stdin
 PublicKey = ""       # ssh public authorized key path, if using this, add here
 
-# Cluster default
-[hosts.default]
+# Group default
+[groups.default]
 Hosts     = [
     "127.0.0.[1-5]",        # simple preg support
     "127.0.0.[6-7]:233",
@@ -50,8 +57,8 @@ Hosts     = [
     "127.0.0.9:25"          # port 25
 ]
 
-# Cluster 2
-[hosts.example]
+# Group example
+[groups.example]
 Hosts     = [
     "127.0.0.2",
     "127.0.0.3:25"
@@ -65,6 +72,7 @@ Uses packages.
 
 - [toml config parser](https://github.com/BurntSushi/toml) master
 - [golang.org/x/crypto/ssh](https://github.com/golang/crypto)
+- [github.com/pkg/sftp](https://github.com/pkg/sftp)
 
 ## TODO
 

@@ -1,6 +1,13 @@
 package elfgate
 
 
+type SftpFile struct {
+    Filename        string
+    Destination     string
+    File            []byte
+}
+
+
 type CmdOutput struct {
     Host            string
     Output          []string
@@ -12,7 +19,7 @@ type ConfigStruct struct {
     Username        string
     Password        string
     PublicKey       string
-    Hosts           map[string]t
+    Groups          map[string]t
 }
 
 type t struct {

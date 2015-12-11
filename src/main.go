@@ -21,32 +21,26 @@ func main() {
 
     runtime.GOMAXPROCS(1)
 
-    signal         := NewSignal()
+    signal           := NewSignal()
     go signal.Run()           // listen ^C & kill
 
     if PublicKeyPath == "" && Password == "" {
         Password      = getPasswd()
     } else if PublicKeyPath != "" && Password == "" {       // If sudo cmd, needs password
-        if IsSudo(Cmd) {
+        if CmdType(Cmd) == "sudo" {
             Password  = getPasswd()
         }
     }
 
-    SSHAgents       = NewAgentPool(Username, Password, Hosts, OutputChan)
-    if len(SSHAgents.Failed) != 0 {
-        for _, msg := range SSHAgents.Failed {
-            fmt.Println(msg)
-        }
-
-        fmt.Println()
-    }
-
+    SSHAgents         = NewAgentPool(Username, Password, Hosts, OutputChan)
     if SSHAgents.Active() == false {
         ErrExit(fmt.Errorf("Can not connect to all clients"))
     }
 
-    oLen           := SSHAgents.Exec(Cmd, Timeout)
-    outputs        := SSHOput.GetOutput(oLen)
+    if err := SSHAgents.Exec(Cmd, Timeout); err != nil {
+        ErrExit(err)
+    }
+    outputs        := SSHOput.GetOutput(SSHAgents.Len())
     StdOutput(outputs)
     SSHAgents.Close()
 

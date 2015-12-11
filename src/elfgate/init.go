@@ -5,6 +5,7 @@ package elfgate
 import (
     "fmt"
     "flag"
+    "strings"
 
     "github.com/BurntSushi/toml"
 )
@@ -31,9 +32,9 @@ func Initialize() error {
     var config *ConfigStruct
     var err error
 
-    var cfgFile     = flag.String("c", "/etc/elfgate.conf", "hosts config")
+    var cfgFile     = flag.String("c", "/etc/elfgate.conf", "elfgate config file")
     var cmd         = flag.String("d", "", "execute command")
-    var cluster     = flag.String("s", "default", "host cluster")
+    var group       = flag.String("g", "default", "host group name")
     var timeout     = flag.Int("t", 0, "execute timeout")       // 0 means no timeout
     flag.Parse()
 
@@ -41,25 +42,26 @@ func Initialize() error {
         return err
     }
 
-    if *cmd == "" {
-        return fmt.Errorf("Usage: -d 'exec cmd'; -c conf; -t timeout; -s cluster")
+    if strings.TrimSpace(*cmd) == "" {
+        return fmt.Errorf("Usage: -d 'exec cmd' -c conf -t timeout -s cluster")
     }
 
-    Cmd             = *cmd
+    Cmd             = strings.TrimSpace(*cmd)
     Timeout         = *timeout
 
     Username        = config.Username
     Password        = config.Password
     PublicKeyPath   = config.PublicKey
 
-    // support multi clusters
-    if _, ok := config.Hosts[*cluster]; !ok {
-        return fmt.Errorf("cluster: %s, not exist", *cluster)
+    // Support multi clusters
+    if _, ok := config.Groups[*group]; !ok {
+        return fmt.Errorf("group: %s, not exist", *group)
     }
 
-    for name, s := range config.Hosts {
-        if name == *cluster {
-            Hosts, err      = ParseHosts(s.Hosts)
+    // Parse & valid hosts
+    for name, s := range config.Groups {
+        if name == *group {
+            Hosts, err  = ParseHosts(s.Hosts)
             if err != nil {
                 return err
             }
@@ -69,7 +71,7 @@ func Initialize() error {
     }
 
     if len(Hosts) == 0 {
-        return fmt.Errorf("Cluster: %s, no valid hosts", *cluster)
+        return fmt.Errorf("Group: %s, no valid hosts", *group)
     }
 
     OutputChan      = make(chan *CmdOutput, 10240)

@@ -38,6 +38,7 @@ func (this *Signal) Run() {
                 os.Exit(0)
             } else {                    // cmds running stopped
                 SSHAgents.StopCmds()
+                SSHOput.Stop()
                 return
             }
         }

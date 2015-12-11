@@ -65,36 +65,34 @@ func (this *Stdin) GetInput() string {
 
 // Getting response from OutputChan
 type SSHOut struct {
-    outputChan  chan *CmdOutput
+    running     bool
+    outputChan  <-chan *CmdOutput
 }
 
 
-func NewSSHOut(o chan *CmdOutput) *SSHOut {
+func NewSSHOut(o <-chan *CmdOutput) *SSHOut {
     return &SSHOut{
+        running    : false,
         outputChan : o,
     }
 }
 
 
-func (this *SSHOut) GetOutput(length int) []*CmdOutput {
-    timer              := time.NewTimer(30 * time.Second)
-    stopped            := false
-    go func() {
-        select {
-        case <-timer.C:
-            stopped     = true
-        default:
-            time.Sleep(10 * time.Microsecond)
-        }
-    }()
+func (this *SSHOut) Stop() {
+    this.running      = false
+}
 
-    outputs     := []*CmdOutput{}
-    for stopped != true {
+
+func (this *SSHOut) GetOutput(length int) []*CmdOutput {
+    outputs          := []*CmdOutput{}
+
+    this.running      = true
+    for this.running == true {
         select {
         case op := <-this.outputChan:
             outputs          = append(outputs, op)
             if len(outputs) == length {
-                stopped      = true
+                this.running = false
             }
         default:
             time.Sleep(10 * time.Microsecond)
