@@ -18,7 +18,7 @@ But, first you should get golang ssh packages
 ```shell
 $ git clone github.com/youngsn/go-ssh
 $ go build -o ssh-logins $GOPATH/go-ssh/src/main.go
-$ cp go-ssh/hosts.toml /etc/elfgate.conf
+$ cp go-ssh/elfgate.yaml /etc/
 ```
 
 Usage:
@@ -43,26 +43,20 @@ $ ssh-logins -c $CONF -g $GROUP -d "sftp $LOCAL_PATH $REMOTE_PATH"
 ```
 
 ## Config syntax
-```toml
-Username  = ""       # server username
-Password  = ""       # login password, if don't config, you will enter through stdin
-PublicKey = ""       # ssh public authorized key path, if using this, add here
+```yaml
+username: tangyang       # server username
+password:                # login password, if don't config, you will enter through stdin
+public_key:              # ssh public authorized key path, if using this, add here
 
-# Group default
-[groups.default]
-Hosts     = [
-    "127.0.0.[1-5]",        # simple preg support
-    "127.0.0.[6-7]:233",
-    "127.0.0.8",            # default port 22
-    "127.0.0.9:25"          # port 25
-]
-
-# Group example
-[groups.example]
-Hosts     = [
-    "127.0.0.2",
-    "127.0.0.3:25"
-]
+groups:
+    default:             # Group default
+        - "127.0.0.[1-5]"        # simple preg support
+        - "127.0.0.[6-7]:233"
+        - "127.0.0.8"            # default port 22
+        - "127.0.0.9:25"         # port 25
+    example:             # Group example
+        - "127.0.0.2"
+        - "127.0.0.3:25"
 ```
 
 
@@ -70,7 +64,7 @@ Hosts     = [
 
 Uses packages.
 
-- [toml config parser](https://github.com/BurntSushi/toml) master
+- [go-yaml](https://github.com/go-yaml/yaml) v2
 - [golang.org/x/crypto/ssh](https://github.com/golang/crypto)
 - [github.com/pkg/sftp](https://github.com/pkg/sftp)
 

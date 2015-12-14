@@ -14,8 +14,7 @@ import (
 
 
 func main() {
-    var err error
-    if err = Initialize(); err != nil {
+    if err := Initialize(); err != nil {
         ErrExit(err)
     }
 
@@ -28,11 +27,11 @@ func main() {
         Password      = getPasswd()
     } else if PublicKeyPath != "" && Password == "" {       // If sudo cmd, needs password
         if CmdType(Cmd) == "sudo" {
-            Password  = getPasswd()
+            Password     = getPasswd()
         }
     }
 
-    SSHAgents         = NewAgentPool(Username, Password, Hosts, OutputChan)
+    SSHAgents              = NewAgentPool(Username, Password, Hosts, OutputChan)
     if SSHAgents.Active() == false {
         ErrExit(fmt.Errorf("Can not connect to all clients"))
     }
@@ -40,7 +39,7 @@ func main() {
     if err := SSHAgents.Exec(Cmd, Timeout); err != nil {
         ErrExit(err)
     }
-    outputs        := SSHOput.GetOutput(SSHAgents.Len())
+    outputs               := SSHOput.GetOutput(SSHAgents.Len())
     StdOutput(outputs)
     SSHAgents.Close()
 
@@ -59,5 +58,6 @@ func getPasswd() string {
 
     return passwd
 }
+
 
 /* vim: set expandtab ts=4 sw=4 sts=4 tw=100: */

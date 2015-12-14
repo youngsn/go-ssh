@@ -6,8 +6,9 @@ import (
     "fmt"
     "flag"
     "strings"
+    "io/ioutil"
 
-    "github.com/BurntSushi/toml"
+    "gopkg.in/yaml.v2"
 )
 
 
@@ -29,16 +30,19 @@ var (
 
 // Config file parse & global vars init(in common & there)
 func Initialize() error {
-    var config *ConfigStruct
-    var err error
-
-    var cfgFile     = flag.String("c", "/etc/elfgate.conf", "elfgate config file")
+    var cfgFile     = flag.String("c", "/etc/elfgate.yaml", "elfgate config file")
     var cmd         = flag.String("d", "", "execute command")
     var group       = flag.String("g", "default", "host group name")
     var timeout     = flag.Int("t", 0, "execute timeout")       // 0 means no timeout
     flag.Parse()
 
-    if _, err = toml.DecodeFile(*cfgFile, &config); err != nil {
+    c, err         := ioutil.ReadFile(*cfgFile)
+    if err != nil {
+        return err
+    }
+
+    config         := ConfigStruct{}
+    if err = yaml.Unmarshal(c, &config); err != nil {
         return err
     }
 
@@ -61,8 +65,7 @@ func Initialize() error {
     // Parse & valid hosts
     for name, s := range config.Groups {
         if name == *group {
-            Hosts, err  = ParseHosts(s.Hosts)
-            if err != nil {
+            if Hosts, err = ParseHosts(s); err != nil {
                 return err
             }
 
