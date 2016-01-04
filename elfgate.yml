@@ -1,5 +1,5 @@
 username: tangyang
-password: 
+password: ""
 public_key: /home/tangyang/.ssh/id_rsa
 
 groups:

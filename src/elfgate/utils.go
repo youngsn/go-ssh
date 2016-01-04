@@ -184,11 +184,4 @@ func FilePathExist(path string) error {
     return nil
 }
 
-
-// Exit program with error.
-func ErrExit(err error) {
-    fmt.Println(err.Error())
-    os.Exit(1)
-}
-
 /* vim: set expandtab ts=4 sw=4 sts=4 tw=100: */

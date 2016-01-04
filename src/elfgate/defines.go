@@ -1,6 +1,9 @@
 package elfgate
 
 
+const VERSION       = "1.2.0"
+
+
 type SftpFile struct {
     Filename        string
     Destination     string

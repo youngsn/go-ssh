@@ -17,29 +17,31 @@ But, first you should get golang ssh packages
 
 ```shell
 $ git clone github.com/youngsn/go-ssh
-$ go build -o ssh-logins $GOPATH/go-ssh/src/main.go
-$ cp go-ssh/elfgate.yaml /etc/
+$ go build -o ssh-logins -v -x $GOPATH/go-ssh/src/main.go
+$ cp go-ssh/elfgate.yml /etc/
+$ sudo cp ssh-logins /usr/local/bin/
+$ ssh-logins "uptime"       # example
 ```
 
 Usage:
 
-Execute command just like below, the outputs will print on screen or > to file.
+Execute command just like below, the outputs will print on screen or using > redirect to file.
 
 Now also sudo command are supported, but at first you should enter password if not config pasword.
 
-- -c, config file location, default: /etc/elfgate.conf
+- -c, config file location, default: /etc/elfgate.yml
 - -t, command timeout, default: 0, no timeout
 - -g, groups that execute commands, default: default
-- -d, execute command, need specify.
+- enter command directly.
 
 ```shell
-$ ssh-logins -c $CONF -t $TIMEOUT -g $GROUP -d $CMD
+$ ssh-logins -c $CONF -t $TIMEOUT -g $GROUP "$CMD"
 ```
 
 If you want to upload file to batch server, just do like below. Very easy and now only supported file, not directory.
 
 ```shell
-$ ssh-logins -c $CONF -g $GROUP -d "sftp $LOCAL_PATH $REMOTE_PATH"
+$ ssh-logins -c $CONF -g $GROUP "sftp $LOCAL_PATH $REMOTE_PATH"
 ```
 
 ## Config syntax
@@ -62,9 +64,10 @@ groups:
 
 ## Third packages
 
-Uses packages.
+Use below third packages.
 
 - [go-yaml](https://github.com/go-yaml/yaml) v2
+- [cli](https://github.com/codegangsta/cli)
 - [golang.org/x/crypto/ssh](https://github.com/golang/crypto)
 - [github.com/pkg/sftp](https://github.com/pkg/sftp)
 
