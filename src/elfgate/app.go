@@ -33,7 +33,7 @@ func AppInit() *cli.App {
     cmdFlag        := []cli.Flag{
         cli.StringFlag{
             Name  : "config, c",
-            Value : "/etc/elfgate.yml",
+            Value : "",
             Usage : "elfgate config file path",
         },
         cli.StringFlag{
@@ -109,6 +109,20 @@ func parseParams(context *cli.Context) error {
     var group       = context.String("group")
     var timeout     = context.Int("timeout")
 
+    defaultCfgPath := [...]string{"/etc/elfgate.yaml", "./elfgate.yml"}
+    if cfgFile == "" {
+        for _, cfgPath := range defaultCfgPath {
+            if err := FileExist(cfgPath); err == nil {
+                cfgFile = cfgPath
+                break
+            }
+        }
+    }
+
+    if cfgFile == "" {
+        return fmt.Errorf("not found /etc/elfgate.yaml or ./elfgate.yaml, specify config file")
+    }
+
     config    := ConfigStruct{}
     if c, err := ioutil.ReadFile(cfgFile); err != nil {
         return err
@@ -121,7 +135,7 @@ func parseParams(context *cli.Context) error {
     Timeout         = timeout
     Cmd             = ""
     if len(context.Args()) > 0 {
-        Cmd         = strings.TrimSpace(context.Args()[0])
+        Cmd         = strings.TrimSpace(strings.Join(context.Args(), " "))
     }
     if Cmd == "" {
         return fmt.Errorf("execute command can not be empty")
