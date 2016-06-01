@@ -1,0 +1,13 @@
+username: tangyang
+password: ""
+public_key: /home/tangyang/.ssh/id_rsa
+
+groups:
+    default:
+        - "127.0.0.[1-5]:22"
+        - "127.0.0.[2-5]"
+        - "127.0.0.6"
+        - "127.0.0.7:223"
+
+    example:
+        - "127.0.0.2"
