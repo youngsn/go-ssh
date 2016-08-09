@@ -15,23 +15,20 @@ import (
 
 
 type Signal struct {
-    signalChan       chan os.Signal
+    signalChan chan os.Signal
 }
 
-
 func NewSignal() *Signal {
-    signalChan     := make(chan os.Signal)
+    signalChan := make(chan os.Signal)
     signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)  // 监听interrupt & kill
-
     return &Signal{
         signalChan : signalChan,
     }
 }
 
-
-func (this *Signal) Run() {
+func (t *Signal) Run() {
     for {
-        signal    := <-this.signalChan
+        signal    := <-t.signalChan
         if signal == syscall.SIGINT || signal == syscall.SIGTERM {      // stop the running
             if SSHAgents == nil {       // Not connected to all clients
                 fmt.Println()
@@ -42,10 +39,8 @@ func (this *Signal) Run() {
                 return
             }
         }
-
         time.Sleep(100 * time.Microsecond)
     }
 }
-
 
 /* vim: set expandtab ts=4 sw=4 sts=4 tw=100: */

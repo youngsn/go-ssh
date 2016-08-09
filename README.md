@@ -7,7 +7,7 @@ Batch exec command on servers &amp; written by golang.
 - Exec command on cluster servers.
 - Server clusters support.
 - Hosts support simple preg(just IPs).
-- sftp supported, can upload file to batch servers(NOTE: supported file only).
+- scp supported(using sftp), can upload file to batch servers(NOTE: supported file only).
 
 ## Getting started
 
@@ -17,10 +17,10 @@ But, first you should get golang ssh packages
 
 ```shell
 $ git clone github.com/youngsn/go-ssh
-$ go build -o ssh-logins -v -x $GOPATH/go-ssh/src/main.go
+$ go build -o bsh -v -x $GOPATH/go-ssh/src/main.go
 $ cp go-ssh/elfgate.yml /etc/
-$ sudo cp ssh-logins /usr/local/bin/
-$ ssh-logins "uptime"       # example
+$ sudo cp bsh /usr/local/bin/
+$ bsh uptime       # example
 ```
 
 Usage:
@@ -35,30 +35,30 @@ Now also sudo command are supported, but at first you should enter password if n
 - enter command directly.
 
 ```shell
-$ ssh-logins -c $CONF -t $TIMEOUT -g $GROUP "$CMD"
+$ bsh -c $CONF -t $TIMEOUT -g $GROUP $CMD
 ```
 
 If you want to upload file to batch server, just do like below. Very easy and now only supported file, not directory.
 
 ```shell
-$ ssh-logins -c $CONF -g $GROUP "sftp $LOCAL_PATH $REMOTE_PATH"
+$ bsh -c $CONF -g $GROUP scp $LOCAL_PATH $REMOTE_PATH
 ```
 
 ## Config syntax
 ```yaml
-username: tangyang       # server username
+username: youngsn        # server username
 password:                # login password, if don't config, you will enter through stdin
 public_key:              # ssh public authorized key path, if using this, add here
 
 groups:
     default:             # Group default
-        - "127.0.0.[1-5]"        # simple preg support
-        - "127.0.0.[6-7]:233"
-        - "127.0.0.8"            # default port 22
-        - "127.0.0.9:25"         # port 25
+        - 127.0.0.[1-5]        # simple preg support
+        - 127.0.0.[6-7]:233
+        - 127.0.0.8            # default port 22
+        - 127.0.0.9:25         # port 25
     example:             # Group example
-        - "127.0.0.2"
-        - "127.0.0.3:25"
+        - 127.0.0.2
+        - 127.0.0.3:25
 ```
 
 

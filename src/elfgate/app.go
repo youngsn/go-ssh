@@ -14,23 +14,23 @@ import (
 
 
 var (
-    Username             string
-    Password             string
-    PublicKeyPath        string
+    Username      string
+    Password      string
+    PublicKeyPath string
 
-    Cmd                  string
-    Timeout              int
-    Hosts                []string
+    Cmd           string
+    Timeout       int
+    Hosts         []string
 
-    SSHAgents            *AgentPool
-    SSHOput              *SSHOut
+    SSHAgents     *AgentPool
+    SSHOput       *SSHOut
 
-    OutputChan           chan *CmdOutput
+    OutputChan    chan *CmdOutput
 )
 
 // Init app details.
 func AppInit() *cli.App {
-    cmdFlag        := []cli.Flag{
+    cmdFlag       := []cli.Flag{
         cli.StringFlag{
             Name  : "config, c",
             Value : "",
@@ -49,46 +49,46 @@ func AppInit() *cli.App {
     }
 
     var err error
-    app            := cli.NewApp()
-    app.Name        = "elfgate"
-    app.Usage       = "execute commands on batch servers"
-    app.Version     = VERSION
-    app.Flags       = cmdFlag
-    app.Before      = func(c *cli.Context) error {   // Parse cmds & params
-        err    := parseParams(c)
-        if err != nil {
-            cli.ShowAppHelp(c)
-        }
-        return err
-    }
-    app.After       = func(c *cli.Context) error {   // If has exec errors, return
-        if err != nil {
-            cli.ShowAppHelp(c)
-        }
-        return err
-    }
-    app.Action      = func(c *cli.Context) {         // Run apps 
-        err         = appRun()
-    }
+    app        := cli.NewApp()
+    app.Name    = APP_NAME
+    app.Usage   = "execute commands on group servers"
+    app.Version = APP_VERSION
+    app.Flags   = cmdFlag
 
+    app.Before = func(c *cli.Context) error {   // Parse cmds & params
+        return parseParams(c)
+    }
+    app.After  = func(c *cli.Context) error {   // If has exec errors, return
+        return err
+    }
+    app.Action = func(c *cli.Context) {         // Run apps 
+        err    = appRun()
+    }
     return app
 }
 
 // Main running commands.
 func appRun() error {
     runtime.GOMAXPROCS(1)
-
     go NewSignal().Run()           // listen ^C & kill
+
+    if Cmd == "list" {
+        for _, host := range Hosts {
+            piece   := strings.Split(host, ":")
+            fmt.Println(piece[0])
+        }
+        return nil
+    }
 
     if PublicKeyPath == "" && Password == "" {
         Password      = getPasswd()
     } else if PublicKeyPath != "" && Password == "" {       // If sudo cmd, needs password
         if CmdType(Cmd) == "sudo" {
-            Password     = getPasswd()
+            Password  = getPasswd()
         }
     }
 
-    SSHAgents              = NewAgentPool(Username, Password, Hosts, OutputChan)
+    SSHAgents = NewAgentPool(Username, Password, Hosts, OutputChan)
     if SSHAgents.Active() == false {
         return fmt.Errorf("can not connect any clients")
     }
@@ -96,10 +96,9 @@ func appRun() error {
     if err := SSHAgents.Exec(Cmd, Timeout); err != nil {
         return err
     }
-    outputs               := SSHOput.GetOutput(SSHAgents.Len())
+    outputs  := SSHOput.GetOutput(SSHAgents.Len())
     StdOutput(outputs)
     SSHAgents.Close()
-
     return nil
 }
 
@@ -109,7 +108,7 @@ func parseParams(context *cli.Context) error {
     var group       = context.String("group")
     var timeout     = context.Int("timeout")
 
-    defaultCfgPath := [...]string{"/etc/elfgate.yaml", "./elfgate.yml"}
+    defaultCfgPath := [...]string{"/etc/elfgate.yml", "./elfgate.yml"}
     if cfgFile == "" {
         for _, cfgPath := range defaultCfgPath {
             if err := FileExist(cfgPath); err == nil {
@@ -120,7 +119,7 @@ func parseParams(context *cli.Context) error {
     }
 
     if cfgFile == "" {
-        return fmt.Errorf("not found /etc/elfgate.yaml or ./elfgate.yaml, specify config file")
+        return fmt.Errorf("config file not found in any /etc/elfgate.yml or ./elfgate.yml")
     }
 
     config    := ConfigStruct{}
@@ -132,26 +131,23 @@ func parseParams(context *cli.Context) error {
         }
     }
 
-    Timeout         = timeout
-    Cmd             = ""
+    Timeout = timeout
+    Cmd     = ""
     if len(context.Args()) > 0 {
-        Cmd         = strings.TrimSpace(strings.Join(context.Args(), " "))
+        Cmd = strings.TrimSpace(strings.Join(context.Args(), " "))
     }
     if Cmd == "" {
-        return fmt.Errorf("execute command can not be empty")
+        return fmt.Errorf("no command")
     }
 
-    Username        = config.Username
-    Password        = config.Password
-    PublicKeyPath   = config.PublicKey
-
-    // Support multi groups
-    if _, ok := config.Groups[group]; !ok {
-        return fmt.Errorf("-g, group: %s, not exist", group)
+    Username      = config.Username
+    Password      = config.Password
+    PublicKeyPath = config.PublicKey
+    if _, ok := config.Groups[group]; !ok {     // Support multi groups
+        return fmt.Errorf("group: %s not exist", group)
     }
 
-    // Parse & valid hosts
-    for name, s := range config.Groups {
+    for name, s := range config.Groups {        // Parse & valid hosts
         if name == group {
             var err error
             if Hosts, err = ParseHosts(s); err != nil {
@@ -162,12 +158,11 @@ func parseParams(context *cli.Context) error {
     }
 
     if len(Hosts) == 0 {
-        return fmt.Errorf("-g, group: %s, have no valid host", group)
+        return fmt.Errorf("group: %s no valid hosts", group)
     }
 
-    OutputChan      = make(chan *CmdOutput, 10240)
-    SSHOput         = NewSSHOut(OutputChan)
-
+    OutputChan = make(chan *CmdOutput, 10240)
+    SSHOput    = NewSSHOut(OutputChan)
     return nil
 }
 
@@ -180,7 +175,6 @@ func getPasswd() string {
         fmt.Println(err.Error())
         os.Exit(1)
     }
-
     return passwd
 }
 
